@@ -1,4 +1,4 @@
-import { RedisCacheProvider } from "../../pkg/cache/redis.js";
+import {cacheProvider} from "./init.js";
 
 export function withCache(ttl = 3600) {
     return async (req, res, next) => {
@@ -6,7 +6,7 @@ export function withCache(ttl = 3600) {
         // method + url
         // "GET:/products" : "[{},{},{},...]"
         let key = `${req.method}:${req.originalUrl}`;
-        const cached = await RedisCacheProvider.get(key);
+        const cached = await cacheProvider.get(key);
         if (cached) {
             res.setHeader('X-Cache', 'HIT');
             return res.json(JSON.parse(cached));
@@ -21,7 +21,7 @@ export function withCache(ttl = 3600) {
 
         res.json = (async (body) => {
             // 1. cache body >> "{"message":"","success":true,data:[{},{}]}"
-            await RedisCacheProvider.set(key, JSON.stringify(body), ttl);
+            await cacheProvider.set(key, JSON.stringify(body), ttl);
             // 2. send response
             res.setHeader('X-Cache', 'MISS');
             return originalJson(body); // cache + re.json >> cache + res.json >> cache + res.js

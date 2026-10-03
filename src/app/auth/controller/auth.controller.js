@@ -79,3 +79,12 @@ export async function loginWithGoogle(req, res, next) {
         next(err);
     }
 }
+
+export async function getAllUsers(req, res, next) {
+    try {
+        const users = await authService.getAllUsers();
+        successResponse(res, 200, "Users retrieved successfully", users);
+    } catch (error) {
+        next(error);
+    }
+}

@@ -22,3 +22,7 @@ export async function updateUserByEmail(email, updateData) {
         { $set: updateData },
     );
 }
+
+export async function getAllUsers() {
+    return User.find();
+}

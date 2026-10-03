@@ -162,3 +162,8 @@ export async function loginWithGoogle(idToken) {
     return generateToken({ email: new_user.email, id: new_user._id })
 
 }
+
+export async function getAllUsers() {
+    const users = await authRepo.getAllUsers()
+    return users
+}
