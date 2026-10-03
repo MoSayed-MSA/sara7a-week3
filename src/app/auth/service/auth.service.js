@@ -1,13 +1,16 @@
 import * as authRepo from "../repository/auth.repository.js";
 import * as otpRepo from "../repository/otp.repository.js";
-import { timeToMS } from "../../../common/utils/time.js";
-import { sendEmail } from "../../../common/email/email.js";
-import { generate0TPCode } from "../../../common/utils/otps.js";
-import { appError } from "../../../common/utils/error.js";
+import { timeToMS } from "../../../pkg/utils/time.js";
+import { sendEmail } from "../../../lib/email/email.js";
+import { generate0TPCode } from "../../../pkg/utils/otps.js";
+import { appError } from "../../../pkg/error/error.js";
 import { userExist, userNotExist, userNotSignUp, userNotVerified, userVerified } from "../../user/utils/error.js";
-import { generateToken } from "../../../common/security/jwt.js";
-import { comparePassword, hashPassword } from "../../../common/security/bcrypt.js";
+import { generateToken } from "../../../lib/security/jwt.js";
+import { comparePassword, hashPassword } from "../../../lib/security/bcrypt.js";
 import { OtpExpired, OtpNotMatch } from "../utils/error.js";
+import { logger } from "../../../pkg/logger/logger.js";
+import { verifyGoogleAccount } from "../../../lib/utils/google-Oauth.js";
+import { email } from "zod";
 
 export async function register(userData) {
     // check if user already exists
@@ -120,6 +123,7 @@ export async function send0tp(email) {
         email: user.email,
         expiredAt: new Date(Date.now() + timeToMS(5, "min"))
     })
+    logger.info(code)
     // 3. send otp email
     await sendEmail(user.email, "Verify your email", `<p>Your OTP is: <h1>${code}</h1></p>`);
 
@@ -137,4 +141,24 @@ export async function forgetPassword(email, code, newPassword) {
 
     //3. delete OTPs 
     await otpRepo.deleteOTP(email)
+}
+
+export async function loginWithGoogle(idToken) {
+    // verify google account
+    const payload = await verifyGoogleAccount(idToken)
+    //check user existance
+    const user = await authRepo.findUserByEmail(payload.email)
+    // if user not exist, create token and return
+    if (!user) {
+        return generateToken({ email: payload.email, id: user._id })
+    }
+    // if user not exist create new user with token
+    const new_user = await authRepo.createUser({
+        name: payload.name,
+        email: payload.email,
+        proiver: 'Google',
+        isVerified: true
+    })
+    return generateToken({ email: new_user.email, id: new_user._id })
+
 }

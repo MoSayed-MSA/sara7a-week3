@@ -1,18 +1,19 @@
 import dotenv from 'dotenv';
 import nodemailer from 'nodemailer';
+import { env } from '../config/env.js';
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 587,
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        user: env.nodemailer.user,
+        pass: env.nodemailer.pass
     }
 });
 export async function sendEmail(to, subject, html) {
     await transporter.sendMail({
-        from: `"Verify your email" <${process.env.EMAIL_USER}>`,
+        from: `"Verify your email" <${env.nodemailer.user}>`,
         to: to,
         subject: subject,
         html: html

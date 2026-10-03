@@ -1,6 +1,6 @@
-import { successResponse } from "../../../common/utils/successRes.js";
-import { timeToMS } from "../../../common/utils/time.js";
-import { validateBody } from "../../../common/validation/validation.js";
+import { successResponse } from "../../../pkg/utils/successRes.js";
+import { timeToMS } from "../../../pkg/utils/time.js";
+import { validateBody } from "../../../lib/validation/validation.js";
 import { forgetPassDto, loginDto, registerDto, sendOtpDto, verifyOtpDto } from "../dto/auth.dto.js";
 import * as authService from "../service/auth.service.js";
 
@@ -62,5 +62,20 @@ export async function forgetPassword(req, res, next) {
         res.sendStatus(204);
     } catch (error) {
         next(error);
+    }
+}
+
+export async function loginWithGoogle(req, res, next) {
+    try {
+        const { idToken } = req.body
+
+        const token = await authService.loginWithGoogle(idToken)
+
+        res.cookie('access_token', token, {
+            httpOnly: true,
+            maxAge: timeToMS(1, 'h')
+        }).sendStatus(204)
+    } catch (err) {
+        next(err);
     }
 }

@@ -8,5 +8,6 @@ authRouter.patch('/verify', authController.verifyOtp);
 authRouter.post('/signin', authController.signIn);
 authRouter.post('/send-otp', authController.sendOtp);
 authRouter.patch('/reset-pass', authController.forgetPassword);
+authRouter.post('/login-with-google', authController.loginWithGoogle);
 
 export default authRouter;
